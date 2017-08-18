@@ -44,6 +44,11 @@ type EndpointOpts struct {
 	// Required only for services that span multiple regions.
 	Region string
 
+	// CinderEndpoint [optional] is currently only used w/ an UnAuthenticatedClient
+	// and a NewBlockStorageV2 clientType. A cinder endpoint w/ "auth_strategy=noauth"
+	// is necessary - e.g. http://cinder:8776/v2
+	CinderEndpoint string
+
 	// Availability [optional] is the visibility of the endpoint to be returned.
 	// Valid types include the constants AvailabilityPublic, AvailabilityInternal,
 	// or AvailabilityAdmin from this package.

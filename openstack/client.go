@@ -88,6 +88,24 @@ func AuthenticatedClient(options gophercloud.AuthOptions) (*gophercloud.Provider
 	return client, nil
 }
 
+// UnAuthenticatedClient allows for standalone "noauth" Cinder usage
+func UnAuthenticatedClient(options gophercloud.AuthOptions) (*gophercloud.ProviderClient, error) {
+	if len(options.Username) == 0 {
+		options.Username = "admin"
+	}
+
+	if len(options.TenantName) == 0 {
+		options.TenantName = "admin"
+	}
+
+	client := &gophercloud.ProviderClient{
+		IdentityBase:    options.TenantName,
+		EndpointLocator: nil,
+		TokenID:         fmt.Sprintf("%s:%s", options.Username, options.TenantName),
+	}
+	return client, nil
+}
+
 // Authenticate or re-authenticate against the most recent identity service
 // supported at the provided endpoint.
 func Authenticate(client *gophercloud.ProviderClient, options gophercloud.AuthOptions) error {
@@ -251,12 +269,17 @@ func NewIdentityV3(client *gophercloud.ProviderClient, eo gophercloud.EndpointOp
 func initClientOpts(client *gophercloud.ProviderClient, eo gophercloud.EndpointOpts, clientType string) (*gophercloud.ServiceClient, error) {
 	sc := new(gophercloud.ServiceClient)
 	eo.ApplyDefaults(clientType)
-	url, err := client.EndpointLocator(eo)
-	if err != nil {
-		return sc, err
+	if client.EndpointLocator == nil && len(eo.CinderEndpoint) != 0 && clientType == "volumev2" {
+		url := gophercloud.NormalizeURL(fmt.Sprintf("%s/%s", eo.CinderEndpoint, client.IdentityBase))
+		sc.Endpoint = url
+	} else {
+		url, err := client.EndpointLocator(eo)
+		if err != nil {
+			return sc, err
+		}
+		sc.Endpoint = url
 	}
 	sc.ProviderClient = client
-	sc.Endpoint = url
 	sc.Type = clientType
 	return sc, nil
 }
