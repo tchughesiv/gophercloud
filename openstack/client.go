@@ -269,7 +269,7 @@ func NewIdentityV3(client *gophercloud.ProviderClient, eo gophercloud.EndpointOp
 func initClientOpts(client *gophercloud.ProviderClient, eo gophercloud.EndpointOpts, clientType string) (*gophercloud.ServiceClient, error) {
 	sc := new(gophercloud.ServiceClient)
 	eo.ApplyDefaults(clientType)
-	if client.EndpointLocator == nil && len(eo.CinderEndpoint) != 0 && clientType == "volumev2" {
+	if client.EndpointLocator == nil && len(eo.CinderEndpoint) > 0 && clientType == "volumev2" {
 		url := gophercloud.NormalizeURL(fmt.Sprintf("%s/%s", eo.CinderEndpoint, client.IdentityBase))
 		sc.Endpoint = url
 	} else {
